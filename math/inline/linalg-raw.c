@@ -1,7 +1,61 @@
 #include <cblas.h>
 
 
-double kk_dot_product(kk_vector_t a, kk_vector_t b, kk_context_t* ctx) {
+double kk_asum(kk_vector_t v, kk_context_t* ctx) {
+    kk_ssize_t length;
+    kk_box_t* vec_buf = kk_vector_buf_borrow(v, &length, ctx);
+
+    double* buf = kk_malloc( sizeof(double) * length, ctx);
+
+    for (kk_ssize_t i = 0; i < length; i++) {
+        buf[i] = kk_double_unbox(vec_buf[i], KK_OWNED, ctx);
+    }
+
+    double result = cblas_dasum(length, buf, 1);
+
+    kk_free(buf, ctx);
+
+    return result;
+}
+
+kk_vector_t kk_axpy(kk_vector_t a, kk_vector_t b, double scalar, kk_context_t* ctx) {
+    kk_ssize_t a_length;
+    kk_ssize_t b_length;
+    kk_box_t* a_vec_buf = kk_vector_buf_borrow(a, &a_length, ctx);
+    kk_box_t* b_vec_buf = kk_vector_buf_borrow(b, &b_length, ctx);
+
+    kk_ssize_t length = a_length;
+    if (length > b_length) 
+        length = b_length;
+
+    double* a_buf = kk_malloc( sizeof(double) * length, ctx);
+    double* b_buf = kk_malloc( sizeof(double) * length, ctx);
+
+    for (kk_ssize_t i = 0; i < length; i++) {
+        a_buf[i] = kk_double_unbox(a_vec_buf[i], KK_OWNED, ctx);
+        b_buf[i] = kk_double_unbox(b_vec_buf[i], KK_OWNED, ctx);
+    }
+
+    cblas_daxpy(length, scalar, a_buf, 1, b_buf, 1);
+
+    kk_vector_t output;
+    if (kk_datatype_is_unique(b, ctx)) {   
+        output = b;
+    } else {
+        output = kk_vector_copy(b, ctx);
+    }
+    kk_box_t* out_buf = kk_vector_buf_borrow(output, &length, ctx);
+    for (kk_ssize_t i = 0; i < length; i++) {
+        out_buf[i] = kk_double_box(b_buf[i], ctx);
+    } 
+
+    kk_free(a_buf, ctx);
+    kk_free(b_buf, ctx);
+
+    return output;
+}
+
+double kk_dot(kk_vector_t a, kk_vector_t b, kk_context_t* ctx) {
     kk_ssize_t a_length;
     kk_ssize_t b_length;
     kk_box_t* a_vec_buf = kk_vector_buf_borrow(a, &a_length, ctx);
@@ -27,7 +81,7 @@ double kk_dot_product(kk_vector_t a, kk_vector_t b, kk_context_t* ctx) {
     return result;
 }
 
-double kk_vector_norm(kk_vector_t v, kk_context_t* ctx) {
+double kk_nrm2(kk_vector_t v, kk_context_t* ctx) {
     kk_ssize_t length;
     kk_box_t* vec_buf = kk_vector_buf_borrow(v, &length, ctx);
 
@@ -44,8 +98,7 @@ double kk_vector_norm(kk_vector_t v, kk_context_t* ctx) {
     return result;
 }
 
-// This should be a tuple but I am not sure how to create a tuple from C.
-kk_vector_t kk_vector_rotation(kk_vector_t a, kk_vector_t b, double scalar1, double scalar2, kk_context_t* ctx) {
+kk_std_core_types__tuple2 kk_rot(kk_vector_t a, kk_vector_t b, double scalar1, double scalar2, kk_context_t* ctx) {
     kk_ssize_t a_length;
     kk_ssize_t b_length;
     kk_box_t* a_vec_buf = kk_vector_buf_borrow(a, &a_length, ctx);
@@ -76,36 +129,24 @@ kk_vector_t kk_vector_rotation(kk_vector_t a, kk_vector_t b, double scalar1, dou
         d_vec_buf[i] = kk_double_box(b_buf[i], ctx);
     }
 
-    kk_vector_t out_vec = kk_vector_alloc(2, kk_box_null(), ctx);
-    kk_ssize_t out_vec_len;
-    kk_box_t* out_vec_buf = kk_vector_buf_borrow(out_vec, &out_vec_len, ctx);
-    out_vec_buf[0] = kk_vector_box(c_vec, ctx);
-    out_vec_buf[1] = kk_vector_box(d_vec, ctx);
-
     kk_free(a_buf, ctx);
     kk_free(b_buf, ctx);
 
-    return out_vec;
+    return kk_std_core_types__new_Tuple2(kk_vector_box(c_vec, ctx), kk_vector_box(d_vec, ctx), ctx);
 }
 
-kk_vector_t kk_vector_rotation_givens_params(double x, double y, kk_context_t* ctx) {
+kk_std_core_types__tuple4 kk_rotg(double x, double y, kk_context_t* ctx) {
     double r = x;
     double z = y;
-    double c;
-    double s;
+    double c = 0.0;
+    double s = 0.0;
 
     cblas_drotg(&r, &z, &c, &s);
 
-    kk_vector_t out_vec = kk_vector_alloc(4, kk_box_null(), ctx);
-    kk_ssize_t out_vec_len;
-    kk_box_t* out_vec_buf = kk_vector_buf_borrow(out_vec, &out_vec_len, ctx);
-    out_vec_buf[0] = kk_double_box(r, ctx);
-    out_vec_buf[1] = kk_double_box(z, ctx);
-    out_vec_buf[2] = kk_double_box(c, ctx);
-    out_vec_buf[3] = kk_double_box(s, ctx);
+    return kk_std_core_types__new_Tuple4(kk_reuse_null, 0, kk_double_box(r, ctx), kk_double_box(z, ctx), kk_double_box(c, ctx), kk_double_box(s, ctx), ctx);
 }
 
-kk_vector_t kk_modified_givens_rotation(kk_vector_t a, kk_vector_t b, kk_vector_t h_matrix, kk_context_t* ctx) {
+kk_std_core_types__tuple2 kk_rotm(kk_vector_t a, kk_vector_t b, double flag, kk_vector_t h_matrix, kk_context_t* ctx) {
     kk_ssize_t a_length;
     kk_ssize_t b_length;
     kk_box_t* a_vec_buf = kk_vector_buf_borrow(a, &a_length, ctx);
@@ -130,7 +171,7 @@ kk_vector_t kk_modified_givens_rotation(kk_vector_t a, kk_vector_t b, kk_vector_
     kk_ssize_t h_length2;
     kk_box_t* h_buf2 = kk_vector_buf_borrow(kk_vector_unbox(h_buf[1], ctx), &h_length2, ctx);
 
-    double h[5] = { -1.0, kk_double_unbox( h_buf1[0], KK_OWNED, ctx), kk_double_unbox( h_buf2[0], KK_OWNED, ctx), kk_double_unbox( h_buf1[1], KK_OWNED, ctx), kk_double_unbox( h_buf2[1], KK_OWNED, ctx) };
+    double h[5] = { flag, kk_double_unbox( h_buf1[0], KK_OWNED, ctx), kk_double_unbox( h_buf1[1], KK_OWNED, ctx), kk_double_unbox( h_buf2[0], KK_OWNED, ctx), kk_double_unbox( h_buf2[1], KK_OWNED, ctx) };
 
     cblas_drotm(length, a_buf, 1, b_buf, 1, h);
 
@@ -145,21 +186,40 @@ kk_vector_t kk_modified_givens_rotation(kk_vector_t a, kk_vector_t b, kk_vector_
         d_vec_buf[i] = kk_double_box(b_buf[i], ctx);
     }
 
-
     kk_free(a_buf, ctx);
     kk_free(b_buf, ctx);
 
-    kk_vector_t out_vec = kk_vector_alloc(2, kk_box_null(), ctx);
-    kk_ssize_t out_vec_len;
-    kk_box_t* out_vec_buf = kk_vector_buf_borrow(out_vec, &out_vec_len, ctx);
-    out_vec_buf[0] = kk_vector_box(c_vec, ctx);
-    out_vec_buf[1] = kk_vector_box(d_vec, ctx);
-
-    return out_vec;
+    return kk_std_core_types__new_Tuple2(kk_vector_box(c_vec, ctx), kk_vector_box(d_vec, ctx), ctx);
 }
 
+kk_std_core_types__tuple3 kk_rotmg(double d1, double d2, double x1, double y1, kk_context_t* ctx) {
 
-kk_vector_t kk_scale_vector(kk_vector_t v, double scalar, kk_context_t* ctx) {
+    double param[5] = { 0 };
+
+    cblas_drotmg(&d1, &d2, &x1, y1, param);
+
+    kk_ssize_t len;
+    kk_vector_t param_vec = kk_vector_alloc(2, kk_box_null(), ctx);
+    kk_vector_t param_col1 = kk_vector_alloc(2, kk_box_null(), ctx);
+    kk_vector_t param_col2 = kk_vector_alloc(2, kk_box_null(), ctx);
+
+    kk_box_t* param_vec_buf = kk_vector_buf_borrow(param_vec, &len, ctx);
+    param_vec_buf[0] = kk_vector_box(param_col1, ctx);
+    param_vec_buf[1] = kk_vector_box(param_col2, ctx);
+    kk_box_t* param_col1_buf = kk_vector_buf_borrow(param_col1, &len, ctx);
+    param_col1_buf[0] = kk_double_box(param[1], ctx);
+    param_col1_buf[0] = kk_double_box(param[2], ctx);
+    kk_box_t* param_col2_buf = kk_vector_buf_borrow(param_col2, &len, ctx);
+    param_col2_buf[0] = kk_double_box(param[3], ctx);
+    param_col2_buf[0] = kk_double_box(param[4], ctx);
+
+    kk_std_core_types__tuple4 tuple = kk_std_core_types__new_Tuple4(kk_reuse_null, 0, kk_double_box(d1, ctx), kk_double_box(d2, ctx), kk_double_box(x1, ctx), kk_double_box(y1, ctx), ctx);
+    kk_box_t tuple_box = kk_std_core_types__tuple4_box(tuple, ctx);
+
+    return kk_std_core_types__new_Tuple3(tuple_box, kk_double_box(param[0], ctx), kk_vector_box(param_vec, ctx), ctx);
+}
+
+kk_vector_t kk_scal(kk_vector_t v, double scalar, kk_context_t* ctx) {
     kk_ssize_t length;
     kk_box_t* vec_buf = kk_vector_buf_borrow(v, &length, ctx);
 
@@ -185,7 +245,7 @@ kk_vector_t kk_scale_vector(kk_vector_t v, double scalar, kk_context_t* ctx) {
     return output;
 }
 
-double kk_sum_magnitudes(kk_vector_t v, kk_context_t* ctx) {
+kk_integer_t kk_iamax(kk_vector_t v, kk_context_t* ctx) {
     kk_ssize_t length;
     kk_box_t* vec_buf = kk_vector_buf_borrow(v, &length, ctx);
 
@@ -195,9 +255,35 @@ double kk_sum_magnitudes(kk_vector_t v, kk_context_t* ctx) {
         buf[i] = kk_double_unbox(vec_buf[i], KK_OWNED, ctx);
     }
 
-    double result = cblas_dasum(length, buf, 1);
+    int64_t i = cblas_idamax(length, buf, 1);
 
     kk_free(buf, ctx);
 
-    return result;
+    return kk_integer_from_uint64(i, ctx);
 }
+
+kk_integer_t kk_iamin(kk_vector_t v, kk_context_t* ctx) {
+    kk_ssize_t length;
+    kk_box_t* vec_buf = kk_vector_buf_borrow(v, &length, ctx);
+
+    double* buf = kk_malloc( sizeof(double) * length, ctx);
+
+    for (kk_ssize_t i = 0; i < length; i++) {
+        buf[i] = kk_double_unbox(vec_buf[i], KK_OWNED, ctx);
+    }
+
+    int64_t i = cblas_idamin(length, buf, 1);
+
+    kk_free(buf, ctx);
+
+    return kk_integer_from_uint64(i, ctx);
+}
+
+
+
+
+
+
+
+
+
