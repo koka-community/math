@@ -4,10 +4,7 @@
 double kk_asum(kk_math_vector__blasvector bv, kk_context_t* ctx) {
     
 
-    double result = cblas_dasum(bv.length, (double*)bv.internal, 1);
-
-    kk_free((double*)bv.internal, ctx);
-    bv.internal = 0;
+    double result = cblas_dasum(bv.length, (double*)kk_intptr_unbox(bv.internal.owned, KK_OWNED, ctx), 1);
 
     return result;
 }
@@ -21,11 +18,7 @@ kk_math_vector__blasvector kk_axpy(kk_math_vector__blasvector a, kk_math_vector_
 
     b.length = length;
 
-    cblas_daxpy(length, scalar, (double*)a.internal, 1, (double*)b.internal, 1);
-
-
-    kk_free((double*)a.internal, ctx);
-    a.internal = 0;
+    cblas_daxpy(length, scalar, (double*)kk_intptr_unbox(a.internal.owned, KK_OWNED, ctx), 1, (double*)kk_intptr_unbox(b.internal.owned, KK_OWNED, ctx), 1);
 
     return b;
 }
@@ -36,22 +29,14 @@ double kk_dot(kk_math_vector__blasvector a, kk_math_vector__blasvector b, kk_con
     if (length > b.length) 
         length = b.length;
 
-    double result = cblas_ddot(length, (double*)a.internal, 1, (double*)b.internal, 1);
-
-    kk_free((double*)a.internal, ctx);
-    kk_free((double*)b.internal, ctx);
-    a.internal = 0;
-    b.internal = 0;
+    double result = cblas_ddot(length, (double*)kk_intptr_unbox(a.internal.owned, KK_OWNED, ctx), 1, (double*)kk_intptr_unbox(b.internal.owned, KK_OWNED, ctx), 1);
 
     return result;
 }
 
 double kk_nrm2(kk_math_vector__blasvector bv, kk_context_t* ctx) {
 
-    double result = cblas_dnrm2(bv.length, (double*)bv.internal, 1);
-
-    kk_free((double*)bv.internal, ctx);
-    bv.internal = 0;
+    double result = cblas_dnrm2(bv.length, (double*)kk_intptr_unbox(bv.internal.owned, KK_OWNED, ctx), 1);
 
     return result;
 }
@@ -62,13 +47,7 @@ kk_std_core_types__tuple2 kk_rot(kk_math_vector__blasvector a, kk_math_vector__b
     if (length > b.length) 
         length = b.length;
 
-    cblas_drot(length, (double*)a.internal, 1, (double*)b.internal, 1, scalar1, scalar2);
-
-    kk_vector_t c_vec = kk_vector_alloc(length, kk_box_null(), ctx);
-    kk_vector_t d_vec = kk_vector_alloc(length, kk_box_null(), ctx);
-
-    kk_box_t* c_vec_buf = kk_vector_buf_borrow(c_vec, &length, ctx);
-    kk_box_t* d_vec_buf = kk_vector_buf_borrow(d_vec, &length, ctx);
+    cblas_drot(length, (double*)kk_intptr_unbox(a.internal.owned, KK_OWNED, ctx), 1, (double*)kk_intptr_unbox(b.internal.owned, KK_OWNED, ctx), 1, scalar1, scalar2);
 
     kk_box_t a_box = kk_math_vector__blasvector_box(a, ctx);
     kk_box_t b_box = kk_math_vector__blasvector_box(b, ctx);
@@ -92,14 +71,10 @@ kk_std_core_types__tuple2 kk_rotm(kk_math_vector__blasvector a, kk_math_vector__
     kk_ssize_t length = a.length;
     if (length > b.length) 
         length = b.length;
-
     
-    double h[5] = { flag, ((double*)h_matrix.internal)[0], ((double*)h_matrix.internal)[1], ((double*)h_matrix.internal)[2], ((double*)h_matrix.internal)[3]};
+    double h[5] = { flag, ((double*)kk_intptr_unbox(h_matrix.internal.owned, KK_OWNED, ctx))[0], ((double*)kk_intptr_unbox(h_matrix.internal.owned, KK_OWNED, ctx))[1], ((double*)kk_intptr_unbox(h_matrix.internal.owned, KK_OWNED, ctx))[2], ((double*)kk_intptr_unbox(h_matrix.internal.owned, KK_OWNED, ctx))[3]};
 
-    cblas_drotm(length, (double*)a.internal, 1, (double*)b.internal, 1, h);
-
-    kk_free((double*)h_matrix.internal, ctx);
-    h_matrix.internal = 0;
+    cblas_drotm(length, (double*)kk_intptr_unbox(a.internal.owned, KK_OWNED, ctx), 1, (double*)kk_intptr_unbox(b.internal.owned, KK_OWNED, ctx), 1, h);
 
     kk_box_t a_box = kk_math_vector__blasvector_box(a, ctx);
     kk_box_t b_box = kk_math_vector__blasvector_box(b, ctx);
@@ -114,9 +89,11 @@ kk_std_core_types__tuple3 kk_rotmg(double d1, double d2, double x1, double y1, k
 
     cblas_drotmg(&d1, &d2, &x1, y1, param);
 
-    double* h_matrix_buf = kk_malloc( sizeof(double) * 4, ctx);
+    double* h_matrix_buf = malloc( sizeof(double) * 4);
 
-    kk_math_matrix__blasmatrix h_matrix = kk_math_matrix__new_Blasmatrix(2, 2, (long int)h_matrix_buf, ctx);
+    kk_std_cextern__owned_c owned_buf = kk_std_cextern_c_own((long int)h_matrix_buf, ctx);
+
+    kk_math_matrix__blasmatrix h_matrix = kk_math_matrix__new_Blasmatrix(2, 2, owned_buf, ctx);
 
     kk_box_t h_matrix_box = kk_math_matrix__blasmatrix_box(h_matrix, ctx);
 
@@ -128,29 +105,23 @@ kk_std_core_types__tuple3 kk_rotmg(double d1, double d2, double x1, double y1, k
 
 kk_math_vector__blasvector kk_scal(kk_math_vector__blasvector bv, double scalar, kk_context_t* ctx) {
 
-    cblas_dscal(bv.length, scalar, (double*)bv.internal, 1);
+    cblas_dscal(bv.length, scalar, (double*)kk_intptr_unbox(bv.internal.owned, KK_OWNED, ctx), 1);
     
     return bv;
 }
 
-kk_std_core_types__tuple2 kk_iamax(kk_math_vector__blasvector bv, kk_context_t* ctx) {
+kk_integer_t kk_iamax(kk_math_vector__blasvector bv, kk_context_t* ctx) {
     
-    int64_t i = cblas_idamax(bv.length, (double*)bv.internal, 1);
+    uint64_t i = cblas_idamax(bv.length, (double*)kk_intptr_unbox(bv.internal.owned, KK_OWNED, ctx), 1);
 
-    kk_box_t bv_box = kk_math_vector__blasvector_box(bv, ctx);
-    kk_box_t int_box = kk_integer_box(kk_integer_from_uint64(i, ctx), ctx);
-
-    return kk_std_core_types__new_Tuple2(int_box, bv_box, ctx);
+    return kk_integer_from_uint64(i, ctx);
 }
 
-kk_std_core_types__tuple2 kk_iamin(kk_math_vector__blasvector bv, kk_context_t* ctx) {
+kk_integer_t kk_iamin(kk_math_vector__blasvector bv, kk_context_t* ctx) {
 
-    int64_t i = cblas_idamin(bv.length, (double*)bv.internal, 1);
+    uint64_t i = cblas_idamin(bv.length, (double*)kk_intptr_unbox(bv.internal.owned, KK_OWNED, ctx), 1);
 
-    kk_box_t bv_box = kk_math_vector__blasvector_box(bv, ctx);
-    kk_box_t int_box = kk_integer_box(kk_integer_from_uint64(i, ctx), ctx);
-
-    return kk_std_core_types__new_Tuple2(int_box, bv_box, ctx);
+    return kk_integer_from_uint64(i, ctx);
 }
 
 

@@ -8,31 +8,25 @@
 
 // Contains a custom vector type for interacting with BLAS interfaces.
 module math/vector
+import std/num/int32
+import std/cextern
 
 extern import 
   c file "inline/vector"
 
 pub value struct blasvector
-  length : int64
-  internal : intptr_t
+  length : int32
+  internal : owned-c<float64>
 
 
-pub fun blasvector( len : int64 ) : blasvector
-  Blasvector( len, allocate_buffer( len ))
+pub fun blasvector( len : int32 ) : blasvector
+  Blasvector( len, c-own( allocate-buffer( len ) ) )
   
-extern allocate_buffer( len : int64 ) : intptr_t
-  c inline "(long int)kk_malloc(sizeof(double) * #1, kk_context())"
+extern allocate-buffer( len : int32 ) : intptr_t
+  c inline "(long int)malloc(sizeof(double) * #1)"
 
 pub extern vector/blasvector( v : vector<float64> ) : blasvector
   c "kk_vector_blasvector"
-
-pub fun blasvector/free( bv : blasvector ) : ()
-  match bv
-    Blasvector(_, internal) ->
-      free-internal( internal )
-
-extern free-internal( ptr : intptr_t ) : ()
-  c inline "kk_free((void*)#1, kk_context()); return kk_Unit;"
 
 // Note: this function will free the blasvector
 pub extern blasvector/vector( bv : blasvector ) : vector<float64>
