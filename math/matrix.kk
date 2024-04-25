@@ -16,6 +16,12 @@ pub fun blasmatrix( cols : int32, rows : int32 ) : blasmatrix
 extern allocate-buffer( cols : int32, rows : int32 ) : intptr_t
   c inline "(long int)malloc(sizeof(double) * #1 * #2)"
 
+pub extern matrix/blasmatrix( m : matrix<float64> ) : blasmatrix
+  c "kk_matrix_blasmatrix"
+
+pub extern blasmatrix/matrix( bm : blasmatrix ) : matrix<float64>
+  c "kk_blasmatrix_matrix"
+
 
 inline extern unsafe-get( bm : blasmatrix, col : ssize_t, row : ssize_t ) : float64
   c "kk_blasmatrix_unsafe_get"
@@ -48,3 +54,8 @@ pub alias matrix<a> = vector<vector<a>>
 // Makes an n x m (col x row)) matrix
 pub fun matrix( n : int, m : int, default : a ) : matrix<a>
   vector( n, vector( m, default ) )
+
+fun main() 
+  val m = matrix(2, 2, 1.0)
+  val bm = m.blasmatrix
+  ()
