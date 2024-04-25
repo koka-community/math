@@ -5,7 +5,7 @@ kk_math_vector__blasvector kk_vector_blasvector(kk_vector_t v, kk_context_t* ctx
     kk_ssize_t length;
     kk_box_t* vec_buf = kk_vector_buf_borrow(v, &length, ctx);
 
-    double* buf = malloc( sizeof(double) * length);
+    double* buf = kk_malloc( sizeof(double) * length, ctx);
 
     for (kk_ssize_t i = 0; i < length; i++) {
         buf[i] = kk_double_unbox(vec_buf[i], KK_OWNED, ctx);
@@ -18,7 +18,7 @@ kk_math_vector__blasvector kk_vector_blasvector(kk_vector_t v, kk_context_t* ctx
 
 kk_vector_t kk_blasvector_vector(kk_math_vector__blasvector bv, kk_context_t* ctx) {
 
-    double* buf = (double*)kk_intptr_unbox(bv.internal.owned, KK_OWNED, ctx);
+    double* buf = (double*)kk_cptr_raw_unbox_borrowed(bv.internal.owned, ctx);
     kk_vector_t out_vec = kk_vector_alloc(bv.length, kk_box_null(), ctx);
 
     kk_ssize_t length;
@@ -32,17 +32,17 @@ kk_vector_t kk_blasvector_vector(kk_math_vector__blasvector bv, kk_context_t* ct
 }
 
 double kk_blasvector_unsafe_get(kk_math_vector__blasvector bv, kk_ssize_t index, kk_context_t* ctx) {
-    return ((double*)kk_intptr_unbox(bv.internal.owned, KK_OWNED, ctx))[index];
+    return ((double*)kk_cptr_raw_unbox_borrowed(bv.internal.owned, ctx))[index];
 }
 
 kk_unit_t kk_blasvector_unsafe_set(kk_math_vector__blasvector bv, kk_ssize_t index, double value, kk_context_t* ctx) {
-    ((double*)kk_intptr_unbox(bv.internal.owned, KK_OWNED, ctx))[index] = value;
+    ((double*)kk_cptr_raw_unbox_borrowed(bv.internal.owned, ctx))[index] = value;
     return kk_Unit;
 }
 
 kk_math_vector__blasvector kk_blasvector_copy(kk_math_vector__blasvector bv, kk_context_t* ctx) {
-    double* buf = malloc( sizeof(double) * bv.length);
-    double* old_buf = (double*)kk_intptr_unbox(bv.internal.owned, KK_OWNED, ctx);
+    double* buf = kk_malloc( sizeof(double) * bv.length, ctx);
+    double* old_buf = (double*)kk_cptr_raw_unbox_borrowed(bv.internal.owned, ctx);
 
     // This should be conditionally compiled if we ever get MAGMA bindings
     cblas_dcopy(bv.length, old_buf, 1, buf, 1);

@@ -9,8 +9,10 @@
 // Contains a custom vector type for interacting with BLAS interfaces.
 module math/vector
 import std/num/int32
+import std/num/float64
 import std/cextern
 import std/core-extras
+import std/test
 
 extern import 
   c file "inline/vector"
@@ -20,11 +22,11 @@ pub value struct blasvector
   internal : owned-c<float64>
 
 
-pub fun blasvector( len : int32 ) : blasvector
-  Blasvector( len, c-own( allocate-buffer( len ) ) )
+pub fun blasvector( len : int ) : blasvector
+  Blasvector( len.int32, c-own( allocate-buffer( len.int32 ) ) )
   
 extern allocate-buffer( len : int32 ) : intptr_t
-  c inline "(long int)malloc(sizeof(double) * #1)"
+  c inline "(long int)kk_malloc(sizeof(double) * #1, kk_context())"
 
 pub extern vector/blasvector( v : vector<float64> ) : blasvector
   c "kk_vector_blasvector"
@@ -43,16 +45,39 @@ inline extern unsafe-set( bv : blasvector, index : ssize_t, value : float64 ) : 
 pub extern copy( bv : blasvector ) : blasvector
   c "kk_blasvector_copy"
 
-pub fun get( bv : blasvector, index : int ) : maybe<float64>
+pub fun at( bv : blasvector, index : int ) : maybe<float64>
   if index < 0 || index.int32 >= bv.length then
     Nothing
   else
     Just( bv.unsafe-get( index.ssize_t ) )
 
-// WARNING: This will mutate the vector
+// WARNING: This will mutate the blasvector
 pub fun set( bv : blasvector, index : int, value : float64 ) : maybe<blasvector>
   if index < 0 || index.int32 >= bv.length then
     Nothing
   else
     bv.unsafe-set( index.ssize_t, value )
     Just( bv )
+
+fun vector-tests()
+  basic/test("create blasvector from vector<float64>")
+    val v = vector( 2, 1.0 )
+    val bv = v.blasvector
+    val value : maybe<float64> = bv.at( 0 )
+    match value
+      Nothing -> expect(1, { 0 }, details = "Expected Just(1.0) but found something else" )
+      Just(x) -> if x != 1.0 then
+          expect(1, { x.int }, details = "Expected Just(1.0) but found something else" )
+        else
+          ()
+  basic/test("create vector<float64> from blasvector")
+    val bv = blasvector( 2 )
+    val v = bv.vector
+    val value : maybe<float64> = v.at( 0 )
+    match value
+      Nothing -> expect(1, { 0 }, details = "Expected Just(0.0) but found something else" )
+      Just(x) ->
+        if x != 0.0 then
+          expect(0, { x.int }, details = "Expected Just(0.0) but found something else" )
+        else
+          ()

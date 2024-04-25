@@ -12,22 +12,15 @@ kk_math_matrix__blasmatrix kk_matrix_blasmatrix(kk_vector_t matrix, kk_context_t
     for (kk_ssize_t i = 0; i < len; i++) {
         kk_box_t* col_buf = kk_vector_buf_borrow(kk_vector_unbox(matrix_buf[i],ctx), &col_len, ctx);
         if (buf == NULL) {
-            printf("allocating\n");
-            buf = malloc(sizeof(double) * len * col_len);
-            printf("%p\n", buf);
+            buf = kk_malloc(sizeof(double) * len * col_len, ctx);
         }
         for (kk_ssize_t j = 0; j < col_len; j++) {
-            printf("indexing %ld\n", index);
             buf[index] = kk_double_unbox(col_buf[j], KK_OWNED, ctx);
             index += 1;
         }
     }
 
-    printf("boxing c pointer\n");
-    kk_box_t box = kk_std_cextern_c_own_extern(buf, ctx);
-    printf("owning c pointer\n");
-    kk_std_cextern__owned_c owned_buf = kk_std_cextern__new_Owned_c(box, ctx);
-    printf("creating blasmatrix");
+    kk_std_cextern__owned_c owned_buf = kk_std_cextern_c_own((long int)buf, ctx);
     return kk_math_matrix__new_Blasmatrix(len, col_len, owned_buf, ctx);
 }
 
@@ -61,16 +54,16 @@ kk_vector_t kk_blasmatrix_matrix(kk_math_matrix__blasmatrix bmatrix, kk_context_
 
 
 double kk_blasmatrix_unsafe_get(kk_math_matrix__blasmatrix bm, kk_ssize_t col, kk_ssize_t row, kk_context_t* ctx) {
-    return ((double*)kk_intptr_unbox(bm.internal.owned, KK_OWNED, ctx))[col + row];
+    return ((double*)kk_cptr_raw_unbox_borrowed(bm.internal.owned, ctx))[col + row];
 }
 
 kk_unit_t kk_blasmatrix_unsafe_set(kk_math_matrix__blasmatrix bm, kk_ssize_t col, kk_ssize_t row, double value, kk_context_t* ctx) {
-    ((double*)kk_intptr_unbox(bm.internal.owned, KK_OWNED, ctx))[col + row] = value;
+    ((double*)kk_cptr_raw_unbox_borrowed(bm.internal.owned, ctx))[col + row] = value;
     return kk_Unit;
 }
 
 kk_math_matrix__blasmatrix kk_blasmatrix_copy(kk_math_matrix__blasmatrix bm, kk_context_t* ctx) {
-    double* buf = malloc( sizeof(double) * (bm.cols * bm.rows));
+    double* buf = kk_malloc( sizeof(double) * (bm.cols * bm.rows), ctx);
     double* old_buf = (double*)kk_cptr_raw_unbox_borrowed(bm.internal.owned, ctx);
 
     // This should be conditionally compiled if we ever get MAGMA bindings

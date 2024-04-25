@@ -92,7 +92,7 @@ kk_std_core_types__tuple3 kk_rotmg(double d1, double d2, double x1, double y1, k
 
     cblas_drotmg(&d1, &d2, &x1, y1, param);
 
-    double* h_matrix_buf = malloc( sizeof(double) * 4);
+    double* h_matrix_buf = kk_malloc( sizeof(double) * 4, ctx);
 
     kk_std_cextern__owned_c owned_buf = kk_std_cextern_c_own((long int)h_matrix_buf, ctx);
 

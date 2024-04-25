@@ -75,6 +75,7 @@ pub inline fun blas/givens-rotation-parameters( a : float64, b : float64 ) : (fl
   blas/rotg( a, b )
 
 // Performs modified Givens rotation of points in the plane.
+// Note: `h` is a 2x2 blasmatrix
 // Level 1 BLAS
 // Returns (x, y)
 // Flag options are: -1.0, 0.0, 1.0, -2.0
