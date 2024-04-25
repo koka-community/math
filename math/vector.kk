@@ -18,19 +18,21 @@ extern import
   c file "inline/vector"
 
 pub value struct blasvector
-  length : int32
+  pub length : int32
   internal : owned-c<float64>
 
-
+// Creates a `blasvector` from a given size `len`.
 pub fun blasvector( len : int ) : blasvector
   Blasvector( len.int32, c-own( allocate-buffer( len.int32 ) ) )
   
 extern allocate-buffer( len : int32 ) : intptr_t
   c inline "(long int)kk_malloc(sizeof(double) * #1, kk_context())"
 
+// Creates a `blasvector` from a `vector<float64> v`.
 pub extern vector/blasvector( v : vector<float64> ) : blasvector
   c "kk_vector_blasvector"
 
+// Creates a `vector<float64>` from a `blasvector` `bv`.
 pub extern blasvector/vector( bv : blasvector ) : vector<float64>
   c "kk_blasvector_vector"
 
@@ -42,15 +44,19 @@ inline extern unsafe-get( bv : blasvector, index : ssize_t ) : float64
 inline extern unsafe-set( bv : blasvector, index : ssize_t, value : float64 ) : ()
   c "kk_blasvector_unsafe_set"
 
+// Copies a `blasvector` `bv` and creates a new one with
 pub extern copy( bv : blasvector ) : blasvector
   c "kk_blasvector_copy"
 
+// Fetches a value from the blasvector `bm` with a bounds check.
+// Returns a `mayble<float64>`
 pub fun at( bv : blasvector, index : int ) : maybe<float64>
   if index < 0 || index.int32 >= bv.length then
     Nothing
   else
     Just( bv.unsafe-get( index.ssize_t ) )
 
+// Sets a value in the blasmatrix with `value`.
 // WARNING: This will mutate the blasvector
 pub fun set( bv : blasvector, index : int, value : float64 ) : maybe<blasvector>
   if index < 0 || index.int32 >= bv.length then
