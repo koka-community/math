@@ -135,11 +135,70 @@ kk_integer_t kk_iamin(kk_math_vector__blasvector bv, kk_context_t* ctx) {
     return kk_integer_from_uint64(i, ctx);
 }
 
+kk_math_vector__blasvector kk_gemv(double scalar_a, kk_math_matrix__blasmatrix a, kk_math_vector__blasvector x, double scalar_b, kk_math_vector__blasvector y, bool transpose, kk_context_t* ctx) {
 
+    if (transpose) {
+        cblas_dgemv(CblasRowMajor, CblasTrans, a.rows, a.cols, scalar_a, (double*)kk_cptr_raw_unbox_borrowed(a.internal.owned, ctx), a.rows, (double*)kk_cptr_raw_unbox_borrowed(x.internal.owned, ctx), 1, scalar_b, (double*)kk_cptr_raw_unbox_borrowed(y.internal.owned, ctx), 1);
+    } else {
+        cblas_dgemv(CblasRowMajor, CblasNoTrans, a.rows, a.cols, scalar_a, (double*)kk_cptr_raw_unbox_borrowed(a.internal.owned, ctx), a.rows, (double*)kk_cptr_raw_unbox_borrowed(x.internal.owned, ctx), 1, scalar_b, (double*)kk_cptr_raw_unbox_borrowed(y.internal.owned, ctx), 1);
+    }
+    return y;
+}
 
+kk_math_matrix__blasmatrix kk_ger(double scalar, kk_math_matrix__blasmatrix a, kk_math_vector__blasvector x, kk_math_vector__blasvector y, kk_context_t* ctx) {
+    cblas_dger(CblasRowMajor, a.rows, a.cols, scalar, (double*)kk_cptr_raw_unbox_borrowed(x.internal.owned, ctx), 1, (double*)kk_cptr_raw_unbox_borrowed(y.internal.owned, ctx), 1, (double*)kk_cptr_raw_unbox_borrowed(a.internal.owned, ctx), a.rows);
+    return a;
+}
 
+kk_math_vector__blasvector kk_symv(double alpha, kk_math_matrix__blasmatrix a, kk_math_vector__blasvector x, double beta, kk_math_vector__blasvector y, bool upper, kk_context_t* ctx) {
+    if (upper) {
+        cblas_dsymv(CblasRowMajor, CblasUpper, a.rows, alpha, (double*)kk_cptr_raw_unbox_borrowed(a.internal.owned, ctx), a.rows, (double*)kk_cptr_raw_unbox_borrowed(x.internal.owned, ctx), 1, beta, (double*)kk_cptr_raw_unbox_borrowed(y.internal.owned, ctx), 1);
+    } else {
+        cblas_dsymv(CblasRowMajor, CblasLower, a.rows, alpha, (double*)kk_cptr_raw_unbox_borrowed(a.internal.owned, ctx), a.rows, (double*)kk_cptr_raw_unbox_borrowed(x.internal.owned, ctx), 1, beta, (double*)kk_cptr_raw_unbox_borrowed(y.internal.owned, ctx), 1);
+    }
+    return y;
+}
 
+kk_math_matrix__blasmatrix kk_syr(double alpha, kk_math_matrix__blasmatrix a, kk_math_vector__blasvector x, bool upper, kk_context_t* ctx) {
+    if (upper) {
+        cblas_dsyr(CblasRowMajor, CblasUpper, a.rows, alpha, (double*)kk_cptr_raw_unbox_borrowed(x.internal.owned, ctx), 1, (double*)kk_cptr_raw_unbox_borrowed(a.internal.owned, ctx), a.rows);
+    } else {
+        cblas_dsyr(CblasRowMajor, CblasLower, a.rows, alpha, (double*)kk_cptr_raw_unbox_borrowed(x.internal.owned, ctx), 1, (double*)kk_cptr_raw_unbox_borrowed(a.internal.owned, ctx), a.rows);
+    }
+    return a;
+}
 
+kk_math_matrix__blasmatrix kk_syr2(double alpha, kk_math_matrix__blasmatrix a, kk_math_vector__blasvector x, kk_math_vector__blasvector y, bool upper, kk_context_t* ctx) {
+    if (upper) {
+        cblas_dsyr2(CblasRowMajor, CblasUpper, a.rows, alpha, (double*)kk_cptr_raw_unbox_borrowed(x.internal.owned, ctx), 1, (double*)kk_cptr_raw_unbox_borrowed(y.internal.owned, ctx), 1, (double*)kk_cptr_raw_unbox_borrowed(a.internal.owned, ctx), a.rows);
+    } else {
+        cblas_dsyr2(CblasRowMajor, CblasLower, a.rows, alpha, (double*)kk_cptr_raw_unbox_borrowed(x.internal.owned, ctx), 1, (double*)kk_cptr_raw_unbox_borrowed(y.internal.owned, ctx), 1, (double*)kk_cptr_raw_unbox_borrowed(a.internal.owned, ctx), a.rows);
+    }
+    return a;
+}
 
+kk_math_vector__blasvector kk_trmv(kk_math_matrix__blasmatrix a, kk_math_vector__blasvector x, bool transposed, bool upper, bool unit_triangular, kk_context_t* ctx) {
+    CBLAS_UPLO uplo;
+    if (upper) {
+        uplo = CblasUpper;
+    } else {
+        uplo = CblasLower;
+    }
+    CBLAS_TRANSPOSE transpose;
+    if (transposed) {
+        transpose = CblasTrans;
+    } else {
+        transpose = CblasNoTrans;
+    }
+    CBLAS_DIAG diag;
+    if (unit_triangular) {
+        diag = CblasUnit;
+    } else {
+        diag = CblasNonUnit;
+    }
 
+    cblas_dtrmv(CblasRowMajor, uplo, transpose, diag, a.rows, (double*)kk_cptr_raw_unbox_borrowed(a.internal.owned, ctx), a.rows, (double*)kk_cptr_raw_unbox_borrowed(x.internal.owned, ctx), 1);
+
+    return x;
+}
 

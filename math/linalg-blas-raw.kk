@@ -144,7 +144,39 @@ fun level-one-blas-test()
     val bv = blasvector( 2 )
     bv.iamin
     expect(True, { True }, details = "iamin failed")
-  
 
-fun main()
-  level-one-blas-test()
+// Computes a matrix-vector product using a general matrix
+// Level 2 BLAS
+// WARNING: This will mutate the `y` `blasvector`
+pub extern blas/gemv( alpha : float64, a : blasmatrix, x : blasvector, beta : float64, y : blasvector, transpose : bool = False ) : blasvector
+  c "kk_gemv"
+
+// Computes a rank-1 update of a general matrix
+// Level 2 BLAS
+// WARNING: This will mutate the `a` `blasmatrix`
+pub extern blas/ger( scalar : float64, a : blasmatrix, x : blasvector, y : blasvector ) : blasmatrix
+  c "kk_ger"
+
+// Computes a matrix-vector product for a symmetric matrix
+// Level 2 BLAS
+// WARNING: This will mutate the `y` `blasvector`
+pub extern blas/symv( alpha : float64, a : blasmatrix, x : blasvector, beta : float64, y : blasvector, upper : bool = True ) : blasvector
+  c "kk_symv"
+
+// Computes a rank-1 update of a symmetric matrix
+// Level 2 BLAS
+// WARNING: This will mutate the `a` `blasmatrix`
+pub extern blas/syr( alpha : float64, a : blasmatrix, x : blasvector, upper : bool = True ) : blasmatrix
+  c "kk_syr"
+
+// Computes a rank-2 update of a symmetric matrix
+// Level 2 BLAS
+// WARNING: This will mutate the `a` `blasmatrix`
+pub extern blas/syr2( alpha : float64, a : blasmatrix, x : blasvector, y : blasvector, upper : bool = True ) : blasmatrix
+  c "kk_syr2"
+
+// Level 2 BLAS
+// WARNING: This will mutate the `x` `blasvector`
+pub extern blas/trmv( a : blasmatrix, x : blasvector, transpose : bool = False, upper : bool = False, unit-triangular : bool = False ) : blasvector
+  c "kk_trmv"
+

@@ -84,3 +84,12 @@ kk_math_matrix__blasmatrix kk_blasmatrix_copy(kk_math_matrix__blasmatrix bm, kk_
 
     return kk_math_matrix__new_Blasmatrix(bm.cols, bm.rows, owned_buf, ctx);
 }
+
+
+kk_math_matrix__blasmatrix kk_blasmatrix_add(kk_math_matrix__blasmatrix a, kk_math_matrix__blasmatrix b, kk_context_t* ctx) {
+
+    cblas_dgeadd(CblasColMajor, a.rows, a.cols, 1.0, (double*)kk_cptr_raw_unbox_borrowed(a.internal.owned, ctx), a.rows, 1.0, (double*)kk_cptr_raw_unbox_borrowed(b.internal.owned, ctx), b.rows);
+
+    return b;
+}
+

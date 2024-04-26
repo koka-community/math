@@ -72,6 +72,16 @@ pub fun set( bm : blasmatrix, cols : int, rows : int, value : float64 ) : maybe<
         bm.unsafe-set( cols.ssize_t, rows.ssize_t, value )
         Just( bm )
 
+
+extern raw-add( ba : blasmatrix, bb : blasmatrix ) : blasmatrix
+  c "kk_blasmatrix_add"
+
+pub fun (+)( ba : blasmatrix, bb : blasmatrix ) : maybe<blasmatrix>
+  if ba.cols != bb.cols || ba.rows != bb.rows then
+    Nothing
+  else
+    Just( ba.raw-add( bb.copy ) )
+
 pub alias matrix<a> = vector<vector<a>>
 
 // Makes an n x m (col x row)) matrix
@@ -107,3 +117,33 @@ fun matrix-tests()
           expect(0, { x.int }, details = "Expected Just(0.0) but found something else" )
         else
           ()
+
+fun main()
+  val ba = blasmatrix(2, 2)
+  ba.unsafe-set( 0.ssize_t, 0.ssize_t, 0.0)
+  ba.unsafe-set( 1.ssize_t, 0.ssize_t, 0.0)
+  ba.unsafe-set( 0.ssize_t, 1.ssize_t, 0.0)
+  ba.unsafe-set( 1.ssize_t, 1.ssize_t, 3.0)
+  val bb = blasmatrix(2,2)
+  bb.unsafe-set( 0.ssize_t, 0.ssize_t, 0.0)
+  bb.unsafe-set( 1.ssize_t, 0.ssize_t, 0.0)
+  bb.unsafe-set( 0.ssize_t, 1.ssize_t, 0.0)
+  bb.unsafe-set( 1.ssize_t, 1.ssize_t, 3.0)
+
+  val bout = match ba + bb
+    Just(x) -> x
+    Nothing -> bb
+  for(2) fn (i)
+    for(2) fn (j)
+      print(ba.unsafe-get(i.ssize_t, j.ssize_t).show ++ " ")
+    println("")
+  println("")
+  for(2) fn (i)
+    for(2) fn (j)
+      print(bb.unsafe-get(i.ssize_t, j.ssize_t).show ++ " ")
+    println("")
+  println("")
+  for(2) fn (i)
+    for(2) fn (j)
+      print(bout.unsafe-get(i.ssize_t, j.ssize_t).show ++ " ")
+    println("")
