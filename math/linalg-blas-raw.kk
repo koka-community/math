@@ -182,3 +182,8 @@ pub extern blas/syr2( alpha : float64, a : blasmatrix, x : blasvector, y : blasv
 pub extern blas/trmv( a : blasmatrix, x : blasvector, row-major : bool, transpose : bool = False, upper : bool = False, unit-triangular : bool = False ) : blasvector
   c "kk_trmv"
 
+// Solves a system of linear, equations whose coefficients are in a triangular matrix
+// Level 2 BLAS
+// WARNING: This will mutate the `x` `blasvector`
+pub extern blas/trsv( a : blasmatrix, x : blasvector, row-major : bool, transpose : bool = False, upper-triangular : bool = True, unit-triangular : bool = False ) : blasvector
+  c "kk_trsv"

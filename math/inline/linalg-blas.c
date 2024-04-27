@@ -246,3 +246,35 @@ kk_math_vector__blasvector kk_trmv(kk_math_matrix__blasmatrix a, kk_math_vector_
     return x;
 }
 
+kk_math_vector__blasvector kk_trsv(kk_math_matrix__blasmatrix a, kk_math_vector__blasvector x, bool row_major, bool transposed, bool upper_triangular, bool unit_triangular, kk_context_t* ctx) {
+    CBLAS_ORDER major;
+    if (row_major) {
+        major = CblasRowMajor;
+    } else {
+        major = CblasColMajor;
+    }
+    
+    CBLAS_UPLO uplo;
+    if (upper_triangular) {
+        uplo = CblasUpper;
+    } else {
+        uplo = CblasLower;
+    }
+    CBLAS_TRANSPOSE transpose;
+    if (transposed) {
+        transpose = CblasTrans;
+    } else {
+        transpose = CblasNoTrans;
+    }
+    CBLAS_DIAG diag;
+    if (unit_triangular) {
+        diag = CblasUnit;
+    } else {
+        diag = CblasNonUnit;
+    }
+
+    cblas_dtrsv(major, uplo, transpose, diag, a.rows, (double*)kk_cptr_raw_unbox_borrowed(a.internal.owned, ctx), a.rows, (double*)kk_cptr_raw_unbox_borrowed(x.internal.owned, ctx), 1);
+
+    return x;
+}
+
