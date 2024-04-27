@@ -8,7 +8,7 @@
 
 struct kk_math_matrix_Blasmatrix kk_matrix_blasmatrix(kk_vector_t matrix, kk_context_t* ctx);
 
-kk_vector_t kk_blasmatrix_matrix(struct kk_math_matrix_Blasmatrix bmatrix, kk_context_t* ctx);
+kk_vector_t kk_blasmatrix_matrix(struct kk_math_matrix_Blasmatrix bmatrix, bool row_major, kk_context_t* ctx);
 
 double kk_blasmatrix_unsafe_get(struct kk_math_matrix_Blasmatrix bm, kk_ssize_t col, kk_ssize_t row, kk_context_t* ctx);
 

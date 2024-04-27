@@ -52,7 +52,7 @@ pub extern blas/rotg( a : float64, b: float64 ) : (float64, float64, float64, fl
   c "kk_rotg"
 
 // Performs modified Givens rotation of points in the plane.
-// Note: `h` is a 2x2 blasmatrix
+// Note: `h` is a 2x2 blasmatrix and is in row-major
 // Level 1 BLAS
 // Returns (x, y)
 // Flag options are: -1.0, 0.0, 1.0, -2.0
@@ -61,6 +61,7 @@ pub extern blas/rotm( x : blasvector, y : blasvector, flag : float64, h : blasma
   c "kk_rotm"
 
 // Computes the parameters for a modified Givens rotation.
+// Blasmatrix is in row-major
 // Level 1 BLAS
 // Returns ((d1, d2, x1, x2), flag, h)
 // Flag options are: -1.0, 0.0, 1.0, -2.0
@@ -148,35 +149,36 @@ fun level-one-blas-test()
 // Computes a matrix-vector product using a general matrix
 // Level 2 BLAS
 // WARNING: This will mutate the `y` `blasvector`
-pub extern blas/gemv( alpha : float64, a : blasmatrix, x : blasvector, beta : float64, y : blasvector, transpose : bool = False ) : blasvector
+pub extern blas/gemv( alpha : float64, a : blasmatrix, x : blasvector, beta : float64, y : blasvector, row-major : bool, transpose : bool = False ) : blasvector
   c "kk_gemv"
 
 // Computes a rank-1 update of a general matrix
 // Level 2 BLAS
 // WARNING: This will mutate the `a` `blasmatrix`
-pub extern blas/ger( scalar : float64, a : blasmatrix, x : blasvector, y : blasvector ) : blasmatrix
+pub extern blas/ger( scalar : float64, a : blasmatrix, x : blasvector, y : blasvector, row-major : bool ) : blasmatrix
   c "kk_ger"
 
 // Computes a matrix-vector product for a symmetric matrix
 // Level 2 BLAS
 // WARNING: This will mutate the `y` `blasvector`
-pub extern blas/symv( alpha : float64, a : blasmatrix, x : blasvector, beta : float64, y : blasvector, upper : bool = True ) : blasvector
+pub extern blas/symv( alpha : float64, a : blasmatrix, x : blasvector, beta : float64, y : blasvector, row-major : bool, upper : bool = True ) : blasvector
   c "kk_symv"
 
 // Computes a rank-1 update of a symmetric matrix
 // Level 2 BLAS
 // WARNING: This will mutate the `a` `blasmatrix`
-pub extern blas/syr( alpha : float64, a : blasmatrix, x : blasvector, upper : bool = True ) : blasmatrix
+pub extern blas/syr( alpha : float64, a : blasmatrix, x : blasvector, row-major : bool, upper : bool = True ) : blasmatrix
   c "kk_syr"
 
 // Computes a rank-2 update of a symmetric matrix
 // Level 2 BLAS
 // WARNING: This will mutate the `a` `blasmatrix`
-pub extern blas/syr2( alpha : float64, a : blasmatrix, x : blasvector, y : blasvector, upper : bool = True ) : blasmatrix
+pub extern blas/syr2( alpha : float64, a : blasmatrix, x : blasvector, y : blasvector, row-major : bool, upper : bool = True ) : blasmatrix
   c "kk_syr2"
 
+// Computes a matrix-vector product using a triangular matrix.
 // Level 2 BLAS
 // WARNING: This will mutate the `x` `blasvector`
-pub extern blas/trmv( a : blasmatrix, x : blasvector, transpose : bool = False, upper : bool = False, unit-triangular : bool = False ) : blasvector
+pub extern blas/trmv( a : blasmatrix, x : blasvector, row-major : bool, transpose : bool = False, upper : bool = False, unit-triangular : bool = False ) : blasvector
   c "kk_trmv"
 
