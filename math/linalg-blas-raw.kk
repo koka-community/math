@@ -161,7 +161,7 @@ pub extern blas/ger( scalar : float64, a : blasmatrix, x : blasvector, y : blasv
 // Computes a matrix-vector product for a symmetric matrix
 // Level 2 BLAS
 // WARNING: This will mutate the `y` `blasvector`
-pub extern blas/symv( alpha : float64, a : blasmatrix, x : blasvector, beta : float64, y : blasvector, row-major : bool, upper : bool = True ) : blasvector
+pub extern blas/symv( alpha : float64, a : blasmatrix, x : blasvector, beta : float64, y : blasvector, row-major : bool, upper-triangular : bool = True ) : blasvector
   c "kk_symv"
 
 // Computes a rank-1 update of a symmetric matrix
@@ -187,3 +187,61 @@ pub extern blas/trmv( a : blasmatrix, x : blasvector, row-major : bool, transpos
 // WARNING: This will mutate the `x` `blasvector`
 pub extern blas/trsv( a : blasmatrix, x : blasvector, row-major : bool, transpose : bool = False, upper-triangular : bool = True, unit-triangular : bool = False ) : blasvector
   c "kk_trsv"
+
+/*
+fun level-two-blas-tests()
+  basic/test("gemv implementation test")
+    val alpha = 1.0
+    val a = blasmatrix( 2, 2 )
+    val x = blasvector( 2 )
+    val beta = 1.0
+    val y = blasvector( 2 )
+    val row_major = True
+    gemv( alpha, a, x, beta, y, row_major )
+    expect(True, { True }, details = "gemv failed")
+  basic/test("ger implementation test")
+    val scalar = 1.0
+    val a = blasmatrix( 2, 2 )
+    val x = blasvector( 2 )
+    val y = blasvector( 2 )
+    val row_major = True
+    ger( scalar, a, x, y, row_major )
+    expect(True, { True }, details = "ger failed")
+  basic/test("symv implementation test")
+    val alpha = 1.0
+    val a = blasmatrix( 2, 2 )
+    val x = blasvector( 2 )
+    val beta = 1.0
+    val y = blasvector( 2 )
+    val row_major = True
+    symv( alpha, a, x, beta, y, row_major )
+    expect(True, { True }, details = "symv failed")
+  basic/test("syr implementation test")
+    val alpha = 1.0
+    val a = blasmatrix( 2, 2 )
+    val x = blasvector( 2 )
+    val row_major = True
+    syr( alpha, a, x, row_major )
+    expect(True, { True }, details = "syr failed")
+  basic/test("syr2 implementation test")
+    val alpha = 1.0
+    val a = blasmatrix( 2, 2 )
+    val x = blasvector( 2 )
+    val y = blasvector( 2 )
+    val row_major = True
+    syr2( alpha, a, x, y, row_major )
+    expect(True, { True }, details = "syr2 failed")
+  basic/test("trmv implementation test")
+    val a = blasmatrix( 2, 2 )
+    val x = blasvector( 2 )
+    val row_major = True
+    trmv( a, x, row_major )
+    expect(True, { True }, details = "trmv failed")
+  basic/test("trsv implementation test")
+    val a = blasmatrix( 2, 2 )
+    val x = blasvector( 2 )
+    val row_major = True
+    trsv( a, x, row_major )
+    expect(True, { True }, details = "trsv failed")
+*/
+    

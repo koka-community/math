@@ -11,6 +11,7 @@
 // Here is a snippet to help: `--cclinkopts=-lm --cclinkopts=-lpthread --cclinkopts=-lgfortran --cclinkopts=-lopenblas`
 module math/linalg-blas
 import std/test
+import std/num/int32
 import std/num/float64
 import std/core-extras
 import math/matrix
@@ -106,3 +107,38 @@ pub inline fun blas/vector/scalar-multiply( v : vector<float64>, scalar : float6
 pub inline fun blas/blasvector/scalar-multiply( bv : blasvector, scalar : float64 ) : blasvector
   blas/scal( bv.copy, scalar )
 
+
+// Computes a matrix-vector product using a general matrix
+// Level 2 BLAS
+pub inline fun blas/blasmatrix/general/matrix-vector-product( m : blasmatrix, v : blasvector, alpha : float64 = 1.0, row-major : bool = True, transposed : bool = False ) : blasvector
+  blas/gemv( alpha, m, v.copy, 0.0, blasvector( v.length.int ), row-major, transpose = transposed )
+
+// Computes a rank-1 update of a general matrix
+// Level 2 BLAS
+pub inline fun blas/blasmatrix/general/rank-one-update( m : blasmatrix, v1 : blasvector, v2 : blasvector, alpha : float64 = 1.0, row-major : bool = True ) : blasmatrix
+  blas/ger( alpha, m.copy, v1, v2, row-major )
+
+// Computes a matrix-vector product for a symmetric matrix
+// Level 2 BLAS
+pub inline fun blas/blasmatrix/symmetric/matrix-vector-product( m : blasmatrix, v : blasvector, upper-triangular : bool, alpha : float64 = 1.0, row-major : bool = True ) : blasvector
+  blas/symv( alpha, m, v.copy, 0.0, blasvector( v.length.int ), row-major, upper-triangular )
+
+// Computes a rank-1 update of a symmetric matrix
+// Level 2 BLAS
+pub inline fun blas/blasmatrix/symmetric/rank-one-update( m : blasmatrix, v : blasvector, upper-triangular : bool, alpha : float64 = 1.0, row-major : bool = True ) : blasmatrix
+  blas/syr( alpha, m.copy, v, row-major, upper = upper-triangular )
+
+// Computes a rank-2 update of a symmetric matrix
+// Level 2 BLAS
+pub inline fun blas/blasmatrix/symmetric/rank-two-update( m : blasmatrix, v1 : blasvector, v2 : blasvector, upper-triangular : bool, alpha : float64 = 1.0, row-major : bool = True ) : blasmatrix
+  blas/syr2( alpha, m.copy, v1, v2, row-major, upper = upper-triangular )
+
+// Computes a matrix-vector product using a triangular matrix.
+// Level 2 BLAS
+pub inline fun blas/blasmatrix/triangular/matrix-vector-product( m : blasmatrix, v : blasvector, upper-triangular : bool, row-major : bool = True, transposed : bool = False, unit-triangular : bool = False ) : blasvector
+  blas/trmv( m, v.copy, row-major, upper-triangular, transposed, unit-triangular )
+
+// Solves a system of linear, equations whose coefficients are in a triangular matrix
+// Level 2 BLAS
+pub inline fun blas/blasmatrix/triangular/matrix-solver( m : blasmatrix, v : blasvector, upper-triangular : bool, row-major : bool = True, transposed : bool = False, unit-triangular : bool = False ) : blasvector
+  blas/trsv( m, v.copy, row-major, upper-triangular, transposed, unit-triangular )
