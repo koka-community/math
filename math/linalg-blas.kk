@@ -110,35 +110,58 @@ pub inline fun blas/blasvector/scalar-multiply( bv : blasvector, scalar : float6
 
 // Computes a matrix-vector product using a general matrix
 // Level 2 BLAS
-pub inline fun blas/blasmatrix/general/matrix-vector-product( m : blasmatrix, v : blasvector, alpha : float64 = 1.0, row-major : bool = True, transposed : bool = False ) : blasvector
-  blas/gemv( alpha, m, v.copy, 0.0, blasvector( v.length.int ), row-major, transpose = transposed )
+pub inline fun blas/blasmatrix/general/matrix-vector-product( m : blasmatrix, v : blasvector, alpha : float64 = 1.0, row-major : bool = True, transposed : bool = False ) : maybe<blasvector>
+  if transposed && v.length != m.rows then
+    return Nothing
+  else if transposed.not && v.length != m.cols then
+    return Nothing
+  else
+    Just( blas/gemv( alpha, m, v.copy, 0.0, blasvector( v.length.int ), row-major, transpose = transposed ) )
 
 // Computes a rank-1 update of a general matrix
 // Level 2 BLAS
-pub inline fun blas/blasmatrix/general/rank-one-update( m : blasmatrix, v1 : blasvector, v2 : blasvector, alpha : float64 = 1.0, row-major : bool = True ) : blasmatrix
-  blas/ger( alpha, m.copy, v1, v2, row-major )
+pub inline fun blas/blasmatrix/general/rank-one-update( m : blasmatrix, v1 : blasvector, v2 : blasvector, alpha : float64 = 1.0, row-major : bool = True ) : maybe<blasmatrix>
+  if v1.length != m.rows || v2.length != m.cols then
+    return Nothing
+  else
+    Just( blas/ger( alpha, m.copy, v1, v2, row-major ) )
 
 // Computes a matrix-vector product for a symmetric matrix
 // Level 2 BLAS
-pub inline fun blas/blasmatrix/symmetric/matrix-vector-product( m : blasmatrix, v : blasvector, upper-triangular : bool, alpha : float64 = 1.0, row-major : bool = True ) : blasvector
-  blas/symv( alpha, m, v.copy, 0.0, blasvector( v.length.int ), row-major, upper-triangular )
+pub inline fun blas/blasmatrix/symmetric/matrix-vector-product( m : blasmatrix, v : blasvector, upper-triangular : bool, alpha : float64 = 1.0, row-major : bool = True ) : maybe<blasvector>
+  if v.length != m.rows then
+    return Nothing
+  else
+    Just( blas/symv( alpha, m, v.copy, 0.0, blasvector( v.length.int ), row-major, upper-triangular ) )
 
 // Computes a rank-1 update of a symmetric matrix
 // Level 2 BLAS
-pub inline fun blas/blasmatrix/symmetric/rank-one-update( m : blasmatrix, v : blasvector, upper-triangular : bool, alpha : float64 = 1.0, row-major : bool = True ) : blasmatrix
-  blas/syr( alpha, m.copy, v, row-major, upper = upper-triangular )
+pub inline fun blas/blasmatrix/symmetric/rank-one-update( m : blasmatrix, v : blasvector, upper-triangular : bool, alpha : float64 = 1.0, row-major : bool = True ) : maybe<blasmatrix>
+  if v.length != m.rows then
+    return Nothing
+  else
+    Just( blas/syr( alpha, m.copy, v, row-major, upper = upper-triangular ) )
 
 // Computes a rank-2 update of a symmetric matrix
 // Level 2 BLAS
-pub inline fun blas/blasmatrix/symmetric/rank-two-update( m : blasmatrix, v1 : blasvector, v2 : blasvector, upper-triangular : bool, alpha : float64 = 1.0, row-major : bool = True ) : blasmatrix
-  blas/syr2( alpha, m.copy, v1, v2, row-major, upper = upper-triangular )
+pub inline fun blas/blasmatrix/symmetric/rank-two-update( m : blasmatrix, v1 : blasvector, v2 : blasvector, upper-triangular : bool, alpha : float64 = 1.0, row-major : bool = True ) : maybe<blasmatrix>
+  if v1.length != m.rows || v2.length != m.rows then
+    return Nothing
+  else
+    Just( blas/syr2( alpha, m.copy, v1, v2, row-major, upper = upper-triangular ) )
 
 // Computes a matrix-vector product using a triangular matrix.
 // Level 2 BLAS
-pub inline fun blas/blasmatrix/triangular/matrix-vector-product( m : blasmatrix, v : blasvector, upper-triangular : bool, row-major : bool = True, transposed : bool = False, unit-triangular : bool = False ) : blasvector
-  blas/trmv( m, v.copy, row-major, upper-triangular, transposed, unit-triangular )
+pub inline fun blas/blasmatrix/triangular/matrix-vector-product( m : blasmatrix, v : blasvector, upper-triangular : bool, row-major : bool = True, transposed : bool = False, unit-triangular : bool = False ) : maybe<blasvector>
+  if v.length != m.rows then
+    return Nothing
+  else
+    Just( blas/trmv( m, v.copy, row-major, upper-triangular, transposed, unit-triangular ) )
 
 // Solves a system of linear, equations whose coefficients are in a triangular matrix
 // Level 2 BLAS
-pub inline fun blas/blasmatrix/triangular/matrix-solver( m : blasmatrix, v : blasvector, upper-triangular : bool, row-major : bool = True, transposed : bool = False, unit-triangular : bool = False ) : blasvector
-  blas/trsv( m, v.copy, row-major, upper-triangular, transposed, unit-triangular )
+pub inline fun blas/blasmatrix/triangular/matrix-solver( m : blasmatrix, v : blasvector, upper-triangular : bool, row-major : bool = True, transposed : bool = False, unit-triangular : bool = False ) : maybe<blasvector>
+  if v.length != m.rows then
+    return Nothing
+  else
+    Just( blas/trsv( m, v.copy, row-major, upper-triangular, transposed, unit-triangular ) )
