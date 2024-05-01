@@ -22,61 +22,27 @@ pub import math/blas/raw
 
 // Computes the sum of magnitudes of the vector elements.
 // Level 1 BLAS
-pub inline fun vector/sum-of-magnitudes( v : vector<float64> ) : float64
-  val bv = v.blasvector
+pub inline fun sum-of-magnitudes( bv : blasvector ) : float64
   asum( bv )
-
-// Computes the sum of magnitudes of the vector elements.
-// Level 1 BLAS
-pub inline fun blasvector/sum-of-magnitudes( bv : blasvector ) : float64
-  asum( bv )
-
-// Multiplies scalar with `v1` and adds the result to `v2`
-// Level 1 BLAS
-pub inline fun vector/scalar-multiply-with-add( v1 : vector<float64>, v2 : vector<float64>, scalar : float64 ) : vector<float64>
-  val bv1 = v1.blasvector
-  val bv2 = v2.blasvector
-  val bvo = bv1.axpy( bv2, scalar )
-  bvo.blasvector/vector
 
 // Multiplies scalar with `bv1` and adds the result to `bv2`
 // Level 1 BLAS
-pub inline fun blasvector/scalar-multiply-with-add( bv1 : blasvector, bv2 : blasvector, scalar : float64 ) : blasvector
+pub inline fun scalar-multiply-with-add( bv1 : blasvector, bv2 : blasvector, scalar : float64 ) : blasvector
   val bvo = bv1.axpy( bv2.copy, scalar )
   bvo
 
 // Performs a dot product between two vectors of `float64`.
 // Note: the smallest vector will be the maximum size for this operation
-pub inline fun vector/dot( a : vector<float64>, b : vector<float64> ) : float64
-  val x = a.blasvector
-  val y = b.blasvector
-  x.raw/dot( y )
-
-// Performs a dot product between two vectors of `float64`.
-// Note: the smallest vector will be the maximum size for this operation
-pub inline fun blasvector/dot( a : blasvector, b : blasvector ) : float64
+pub inline fun dot( a : blasvector, b : blasvector ) : float64
   a.raw/dot( b )
 
-// Performs the Euclidean norm of a vector.
-pub inline fun vector/norm( v : vector<float64> ) : float64
-  val bv = v.blasvector
-  bv.nrm2
-
 // Computes the Euclidean norm of a vector.
-pub inline fun blasvector/norm( bv : blasvector ) : float64
+pub inline fun norm( bv : blasvector ) : float64
   bv.nrm2
-
-// Performs rotation of points in the plane.
-// Level 1 BLAS 
-pub inline fun vector/rotate( a : vector<float64>, b : vector<float64>, c : float64, s : float64 ) : (vector<float64>, vector<float64>)
-  val bv1 = a.blasvector
-  val bv2 = b.blasvector
-  val (out1, out2) = bv1.rot( bv2, c, s )
-  (out1.vector, out2.vector)
 
 // Performs rotation of points in the plane.
 // Level 1 BLAS
-pub inline fun blasvector/rotate( a : blasvector, b : blasvector, c : float64, s : float64 ) : (blasvector, blasvector)
+pub inline fun rotate( a : blasvector, b : blasvector, c : float64, s : float64 ) : (blasvector, blasvector)
   rot( a.copy, b.copy, c, s )
 
 // Computes the parameters for a Givens rotation.
@@ -90,29 +56,25 @@ pub inline fun givens-rotation-parameters( a : float64, b : float64 ) : (float64
 // Level 1 BLAS
 // Returns (x, y)
 // Flag options are: -1.0, 0.0, 1.0, -2.0
-pub inline fun blasvector/modified-givens-rotation( a : blasvector, b : blasvector, flag : float64, h : blasmatrix ) : (blasvector, blasvector)
+pub inline fun modified-givens-rotation( a : blasvector, b : blasvector, flag : float64, h : blasmatrix ) : (blasvector, blasvector)
   rotm( a.copy, b.copy, flag, h)
 
 // Computes the parameters for a modified Givens rotation.
 // Level 1 BLAS
 // Returns ((d1, d2, x1, x2), flag, h)
 // Flag options are: -1.0, 0.0, 1.0, -2.0
-pub inline fun blasvector/modifed-givens-rotation-parameters( d1 : float64, d2 : float64, x1 : float64, y1 : float64 ) : ((float64, float64, float64, float64), float64, blasmatrix)
+pub inline fun modifed-givens-rotation-parameters( d1 : float64, d2 : float64, x1 : float64, y1 : float64 ) : ((float64, float64, float64, float64), float64, blasmatrix)
   rotmg( d1, d2, x1, y1 )
-
-pub inline fun vector/scalar-multiply( v : vector<float64>, scalar : float64 ) : vector<float64>
-  val bv = v.blasvector
-  scal( bv, scalar ).vector
 
 // Computes the product of a vector by a scalar.
 // Level 1 BLAS
-pub inline fun blasvector/scalar-multiply( bv : blasvector, scalar : float64 ) : blasvector
+pub inline fun scalar-multiply( bv : blasvector, scalar : float64 ) : blasvector
   scal( bv.copy, scalar )
 
 
 // Computes a matrix-vector product using a general matrix
 // Level 2 BLAS
-pub inline fun blasmatrix/general/matrix-vector-product( m : blasmatrix, v : blasvector, alpha : float64 = 1.0, row-major : bool = True, transposed : bool = False ) : maybe<blasvector>
+pub inline fun general/matrix-vector-product( m : blasmatrix, v : blasvector, alpha : float64 = 1.0, row-major : bool = True, transposed : bool = False ) : maybe<blasvector>
   if transposed && v.length != m.rows then
     return Nothing
   else if transposed.not && v.length != m.cols then
@@ -122,7 +84,7 @@ pub inline fun blasmatrix/general/matrix-vector-product( m : blasmatrix, v : bla
 
 // Computes a rank-1 update of a general matrix
 // Level 2 BLAS
-pub inline fun blasmatrix/general/rank-one-update( m : blasmatrix, v1 : blasvector, v2 : blasvector, alpha : float64 = 1.0, row-major : bool = True ) : maybe<blasmatrix>
+pub inline fun general/rank-one-update( m : blasmatrix, v1 : blasvector, v2 : blasvector, alpha : float64 = 1.0, row-major : bool = True ) : maybe<blasmatrix>
   if v1.length != m.rows || v2.length != m.cols then
     return Nothing
   else
@@ -130,7 +92,7 @@ pub inline fun blasmatrix/general/rank-one-update( m : blasmatrix, v1 : blasvect
 
 // Computes a matrix-vector product for a symmetric matrix
 // Level 2 BLAS
-pub inline fun blasmatrix/symmetric/matrix-vector-product( m : blasmatrix, v : blasvector, upper-triangular : bool, alpha : float64 = 1.0, row-major : bool = True ) : maybe<blasvector>
+pub inline fun symmetric/matrix-vector-product( m : blasmatrix, v : blasvector, upper-triangular : bool, alpha : float64 = 1.0, row-major : bool = True ) : maybe<blasvector>
   if v.length != m.rows then
     return Nothing
   else
@@ -138,7 +100,7 @@ pub inline fun blasmatrix/symmetric/matrix-vector-product( m : blasmatrix, v : b
 
 // Computes a rank-1 update of a symmetric matrix
 // Level 2 BLAS
-pub inline fun blasmatrix/symmetric/rank-one-update( m : blasmatrix, v : blasvector, upper-triangular : bool, alpha : float64 = 1.0, row-major : bool = True ) : maybe<blasmatrix>
+pub inline fun symmetric/rank-one-update( m : blasmatrix, v : blasvector, upper-triangular : bool, alpha : float64 = 1.0, row-major : bool = True ) : maybe<blasmatrix>
   if v.length != m.rows then
     return Nothing
   else
@@ -146,7 +108,7 @@ pub inline fun blasmatrix/symmetric/rank-one-update( m : blasmatrix, v : blasvec
 
 // Computes a rank-2 update of a symmetric matrix
 // Level 2 BLAS
-pub inline fun blasmatrix/symmetric/rank-two-update( m : blasmatrix, v1 : blasvector, v2 : blasvector, upper-triangular : bool, alpha : float64 = 1.0, row-major : bool = True ) : maybe<blasmatrix>
+pub inline fun symmetric/rank-two-update( m : blasmatrix, v1 : blasvector, v2 : blasvector, upper-triangular : bool, alpha : float64 = 1.0, row-major : bool = True ) : maybe<blasmatrix>
   if v1.length != m.rows || v2.length != m.rows then
     return Nothing
   else
@@ -154,7 +116,7 @@ pub inline fun blasmatrix/symmetric/rank-two-update( m : blasmatrix, v1 : blasve
 
 // Computes a matrix-vector product using a triangular matrix.
 // Level 2 BLAS
-pub inline fun blasmatrix/triangular/matrix-vector-product( m : blasmatrix, v : blasvector, upper-triangular : bool, row-major : bool = True, transposed : bool = False, unit-triangular : bool = False ) : maybe<blasvector>
+pub inline fun triangular/matrix-vector-product( m : blasmatrix, v : blasvector, upper-triangular : bool, row-major : bool = True, transposed : bool = False, unit-triangular : bool = False ) : maybe<blasvector>
   if v.length != m.rows then
     return Nothing
   else
@@ -162,7 +124,7 @@ pub inline fun blasmatrix/triangular/matrix-vector-product( m : blasmatrix, v : 
 
 // Solves a system of linear, equations whose coefficients are in a triangular matrix
 // Level 2 BLAS
-pub inline fun blasmatrix/triangular/matrix-solver( m : blasmatrix, v : blasvector, upper-triangular : bool, row-major : bool = True, transposed : bool = False, unit-triangular : bool = False ) : maybe<blasvector>
+pub inline fun triangular/matrix-solver( m : blasmatrix, v : blasvector, upper-triangular : bool, row-major : bool = True, transposed : bool = False, unit-triangular : bool = False ) : maybe<blasvector>
   if v.length != m.rows then
     return Nothing
   else
