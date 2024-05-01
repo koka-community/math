@@ -7,48 +7,48 @@
 ----------------------------------------------------------------------------*/
 
 // This a module that maps directly to BLAS calls
-module math/linalg-blas-raw
+module math/blas/raw
 import std/test
 import std/num/float64
-import math/matrix
-import math/vector
+import math/blas/matrix
+import math/blas/vector
 
 
 
 extern import 
-  c file "inline/linalg-blas"
+  c file "inline/raw.h"
 
 // Computes the sum of magnitudes of the vector elements.
 // Level 1 BLAS
-pub extern blas/asum( v : blasvector ) : float64
+pub extern asum( v : blasvector ) : float64
   c "kk_asum"
 
 // Computes a vector-scalar product and adds the result to a vector.
 // Level 1 BLAS
 // WARNING: This will mutate the `y` `blasvector`.
-pub extern blas/axpy( x : blasvector, y : blasvector, scalar : float64 ) : blasvector
+pub extern axpy( x : blasvector, y : blasvector, scalar : float64 ) : blasvector
   c "kk_axpy"
 
 // Computes the dot product of two real vectors.
 // Level 1 BLAS
-pub extern blas/dot( a : blasvector, b : blasvector ) : float64
+pub extern dot( a : blasvector, b : blasvector ) : float64
   c "kk_dot"
 
 // Computes the Euclidean norm of a vector.
 // Level 1 BLAS
-pub extern blas/nrm2( v : blasvector ) : float64
+pub extern nrm2( v : blasvector ) : float64
   c "kk_nrm2"
 
 // Performs rotation of points in the plane.
 // Level 1 BLAS
 // WARNING: This will mutate the `a` and `b` `blasvector`s.
-pub extern blas/rot( a : blasvector, b : blasvector, c : float64, s : float64 ) : (blasvector, blasvector)
+pub extern rot( a : blasvector, b : blasvector, c : float64, s : float64 ) : (blasvector, blasvector)
   c "kk_rot"
 
 // Computes the parameters for a Givens rotation.
 // Level 1 BLAS
 // Given the Cartesian coordinates `(a, b)` of a point, the `rotg` routines return the parameters `c`, `s`, `r`, and `z` associated with the Givens rotation. 
-pub extern blas/rotg( a : float64, b: float64 ) : (float64, float64, float64, float64)
+pub extern rotg( a : float64, b: float64 ) : (float64, float64, float64, float64)
   c "kk_rotg"
 
 // Performs modified Givens rotation of points in the plane.
@@ -57,7 +57,7 @@ pub extern blas/rotg( a : float64, b: float64 ) : (float64, float64, float64, fl
 // Returns (x, y)
 // Flag options are: -1.0, 0.0, 1.0, -2.0
 // WARNING: This will mutate the `x` and `y` `blasvector`s.
-pub extern blas/rotm( x : blasvector, y : blasvector, flag : float64, h : blasmatrix ) : (blasvector, blasvector)
+pub extern rotm( x : blasvector, y : blasvector, flag : float64, h : blasmatrix ) : (blasvector, blasvector)
   c "kk_rotm"
 
 // Computes the parameters for a modified Givens rotation.
@@ -65,23 +65,23 @@ pub extern blas/rotm( x : blasvector, y : blasvector, flag : float64, h : blasma
 // Level 1 BLAS
 // Returns ((d1, d2, x1, x2), flag, h)
 // Flag options are: -1.0, 0.0, 1.0, -2.0
-pub extern blas/rotmg( d1 : float64, d2 : float64, x1 : float64, y1 : float64 ) : ((float64, float64, float64, float64), float64, blasmatrix)
+pub extern rotmg( d1 : float64, d2 : float64, x1 : float64, y1 : float64 ) : ((float64, float64, float64, float64), float64, blasmatrix)
   c "kk_rotmg"
 
 // Computes the product of a vector by a scalar.
 // Level 1 BLAS
 // WARNING: This will mutate the `bv` `blasvector`
-pub extern blas/scal( bv : blasvector, scalar : float64 ) : blasvector
+pub extern scal( bv : blasvector, scalar : float64 ) : blasvector
   c "kk_scal"
 
 // Finds the index of the element with the largest absolute value in a vector.
 // Level 1 BLAS
-pub extern blas/iamax( x : blasvector ) : int
+pub extern iamax( x : blasvector ) : int
   c "kk_iamax"
 
 // Finds the index of the element with the smallest absolute value.
 // Level 1 BLAS
-pub extern blas/iamin( x : blasvector ) : int
+pub extern iamin( x : blasvector ) : int
   c "kk_iamin"
 
 // These tests are not to check the correctness of the library but the implemenation of the wrappers.
@@ -149,43 +149,43 @@ fun level-one-blas-test()
 // Computes a matrix-vector product using a general matrix
 // Level 2 BLAS
 // WARNING: This will mutate the `y` `blasvector`
-pub extern blas/gemv( alpha : float64, a : blasmatrix, x : blasvector, beta : float64, y : blasvector, row-major : bool, transpose : bool = False ) : blasvector
+pub extern gemv( alpha : float64, a : blasmatrix, x : blasvector, beta : float64, y : blasvector, row-major : bool, transpose : bool = False ) : blasvector
   c "kk_gemv"
 
 // Computes a rank-1 update of a general matrix
 // Level 2 BLAS
 // WARNING: This will mutate the `a` `blasmatrix`
-pub extern blas/ger( scalar : float64, a : blasmatrix, x : blasvector, y : blasvector, row-major : bool ) : blasmatrix
+pub extern ger( scalar : float64, a : blasmatrix, x : blasvector, y : blasvector, row-major : bool ) : blasmatrix
   c "kk_ger"
 
 // Computes a matrix-vector product for a symmetric matrix
 // Level 2 BLAS
 // WARNING: This will mutate the `y` `blasvector`
-pub extern blas/symv( alpha : float64, a : blasmatrix, x : blasvector, beta : float64, y : blasvector, row-major : bool, upper-triangular : bool = True ) : blasvector
+pub extern symv( alpha : float64, a : blasmatrix, x : blasvector, beta : float64, y : blasvector, row-major : bool, upper-triangular : bool = True ) : blasvector
   c "kk_symv"
 
 // Computes a rank-1 update of a symmetric matrix
 // Level 2 BLAS
 // WARNING: This will mutate the `a` `blasmatrix`
-pub extern blas/syr( alpha : float64, a : blasmatrix, x : blasvector, row-major : bool, upper : bool = True ) : blasmatrix
+pub extern syr( alpha : float64, a : blasmatrix, x : blasvector, row-major : bool, upper : bool = True ) : blasmatrix
   c "kk_syr"
 
 // Computes a rank-2 update of a symmetric matrix
 // Level 2 BLAS
 // WARNING: This will mutate the `a` `blasmatrix`
-pub extern blas/syr2( alpha : float64, a : blasmatrix, x : blasvector, y : blasvector, row-major : bool, upper : bool = True ) : blasmatrix
+pub extern syr2( alpha : float64, a : blasmatrix, x : blasvector, y : blasvector, row-major : bool, upper : bool = True ) : blasmatrix
   c "kk_syr2"
 
 // Computes a matrix-vector product using a triangular matrix.
 // Level 2 BLAS
 // WARNING: This will mutate the `x` `blasvector`
-pub extern blas/trmv( a : blasmatrix, x : blasvector, row-major : bool, transpose : bool = False, upper : bool = False, unit-triangular : bool = False ) : blasvector
+pub extern trmv( a : blasmatrix, x : blasvector, row-major : bool, transpose : bool = False, upper : bool = False, unit-triangular : bool = False ) : blasvector
   c "kk_trmv"
 
 // Solves a system of linear, equations whose coefficients are in a triangular matrix
 // Level 2 BLAS
 // WARNING: This will mutate the `x` `blasvector`
-pub extern blas/trsv( a : blasmatrix, x : blasvector, row-major : bool, transpose : bool = False, upper-triangular : bool = True, unit-triangular : bool = False ) : blasvector
+pub extern trsv( a : blasmatrix, x : blasvector, row-major : bool, transpose : bool = False, upper-triangular : bool = True, unit-triangular : bool = False ) : blasvector
   c "kk_trsv"
 
 /*

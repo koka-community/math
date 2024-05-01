@@ -8,7 +8,7 @@
 
 #include <cblas.h>
 
-kk_math_matrix__blasmatrix kk_matrix_blasmatrix(kk_vector_t matrix, kk_context_t* ctx) {
+kk_math_blas_matrix__blasmatrix kk_matrix_blasmatrix(kk_vector_t matrix, kk_context_t* ctx) {
     kk_ssize_t len;
     kk_box_t* matrix_buf = kk_vector_buf_borrow(matrix, &len, ctx);
 
@@ -29,10 +29,10 @@ kk_math_matrix__blasmatrix kk_matrix_blasmatrix(kk_vector_t matrix, kk_context_t
     }
 
     kk_std_cextern__owned_c owned_buf = kk_std_cextern_c_own((long int)buf, ctx);
-    return kk_math_matrix__new_Blasmatrix(len, col_len, owned_buf, ctx);
+    return kk_math_blas_matrix__new_Blasmatrix(len, col_len, owned_buf, ctx);
 }
 
-kk_vector_t kk_blasmatrix_matrix(kk_math_matrix__blasmatrix bmatrix, bool row_major, kk_context_t* ctx) {
+kk_vector_t kk_blasmatrix_matrix(kk_math_blas_matrix__blasmatrix bmatrix, bool row_major, kk_context_t* ctx) {
     double* buf = (double*)kk_cptr_raw_unbox_borrowed(bmatrix.internal.owned, ctx);
     kk_vector_t out_vec = kk_vector_alloc(bmatrix.cols, kk_box_null(), ctx);
 
@@ -80,16 +80,16 @@ kk_vector_t kk_blasmatrix_matrix(kk_math_matrix__blasmatrix bmatrix, bool row_ma
 }
 
 
-double kk_blasmatrix_unsafe_get(kk_math_matrix__blasmatrix bm, kk_ssize_t row, kk_ssize_t col, kk_context_t* ctx) {
+double kk_blasmatrix_unsafe_get(kk_math_blas_matrix__blasmatrix bm, kk_ssize_t row, kk_ssize_t col, kk_context_t* ctx) {
     return ((double*)kk_cptr_raw_unbox_borrowed(bm.internal.owned, ctx))[col + row];
 }
 
-kk_unit_t kk_blasmatrix_unsafe_set(kk_math_matrix__blasmatrix bm, kk_ssize_t row, kk_ssize_t col, double value, kk_context_t* ctx) {
+kk_unit_t kk_blasmatrix_unsafe_set(kk_math_blas_matrix__blasmatrix bm, kk_ssize_t row, kk_ssize_t col, double value, kk_context_t* ctx) {
     ((double*)kk_cptr_raw_unbox_borrowed(bm.internal.owned, ctx))[col + row] = value;
     return kk_Unit;
 }
 
-kk_math_matrix__blasmatrix kk_blasmatrix_copy(kk_math_matrix__blasmatrix bm, kk_context_t* ctx) {
+kk_math_blas_matrix__blasmatrix kk_blasmatrix_copy(kk_math_blas_matrix__blasmatrix bm, kk_context_t* ctx) {
     double* buf = kk_malloc( sizeof(double) * (bm.cols * bm.rows), ctx);
     double* old_buf = (double*)kk_cptr_raw_unbox_borrowed(bm.internal.owned, ctx);
 
@@ -101,11 +101,11 @@ kk_math_matrix__blasmatrix kk_blasmatrix_copy(kk_math_matrix__blasmatrix bm, kk_
 
     kk_std_cextern__owned_c owned_buf = kk_std_cextern_c_own((long int)buf, ctx);
 
-    return kk_math_matrix__new_Blasmatrix(bm.cols, bm.rows, owned_buf, ctx);
+    return kk_math_blas_matrix__new_Blasmatrix(bm.cols, bm.rows, owned_buf, ctx);
 }
 
 
-kk_math_matrix__blasmatrix kk_blasmatrix_add(kk_math_matrix__blasmatrix a, kk_math_matrix__blasmatrix b, kk_context_t* ctx) {
+kk_math_blas_matrix__blasmatrix kk_blasmatrix_add(kk_math_blas_matrix__blasmatrix a, kk_math_blas_matrix__blasmatrix b, kk_context_t* ctx) {
 
     cblas_dgeadd(CblasColMajor, a.rows, a.cols, 1.0, (double*)kk_cptr_raw_unbox_borrowed(a.internal.owned, ctx), a.rows, 1.0, (double*)kk_cptr_raw_unbox_borrowed(b.internal.owned, ctx), b.rows);
 
