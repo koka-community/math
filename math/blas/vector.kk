@@ -7,7 +7,7 @@
 ----------------------------------------------------------------------------*/
 
 // Contains a custom vector type for interacting with BLAS interfaces.
-module math/vector
+module math/blas/vector
 import std/num/int32
 import std/num/float64
 import std/cextern
@@ -15,7 +15,7 @@ import std/core-extras
 import std/test
 
 extern import 
-  c file "inline/vector"
+  c file "inline/vector.h"
 
 pub value struct blasvector
   pub length : int32
